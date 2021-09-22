@@ -22,7 +22,7 @@ Here's how to use it:
 </html>
 ```
 
-Additionally you can do setup separately like this. This also gives you the opportunity to choose which bounding box and face landmarks model to use. For both the bounding box and landmark models you have an option of `uint8` and `uint16` and for the landmarks model you also have an `f32` option. These trade between computation speed and accuracy, with `uint8` being the fastest and `f32` the most accurate, and `uint16` laying somewhere in between.
+Additionally you can do setup separately like this:
 ```javascript
 await cat_filter.setup({
   bounding_box_model_path: 'cat_box_uint16',
@@ -30,3 +30,5 @@ await cat_filter.setup({
 });
 const model = await cat_filter.load('filters/cat_heart_eyes');
 ```
+
+This also gives you the opportunity to choose which bounding box and face landmarks model to use. For both the bounding box and landmark models you have an option of `uint8` and `uint16` and for the landmarks model you also have an `f32` option. These trade between computation speed and accuracy, with `uint8` being the fastest and `f32` the most accurate, and `uint16` laying somewhere in between.
