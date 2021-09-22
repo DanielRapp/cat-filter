@@ -32,3 +32,6 @@ const model = await cat_filter.load('filters/cat_heart_eyes');
 ```
 
 This also gives you the opportunity to choose which bounding box and face landmarks model to use. For both the bounding box and landmark models you have an option of `uint8` and `uint16` and for the landmarks model you also have an `f32` option. These trade between computation speed and accuracy, with `uint8` being the fastest and `f32` the most accurate, and `uint16` laying somewhere in between.
+
+### License
+Everything I've written is under MIT. But the models were trained using the nvidia cat stylegan which is under CC-BY-NC. This may fall under fair use or it might not (in which case only non commercial use is allowed), I'm not sure.
