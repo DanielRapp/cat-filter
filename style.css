@@ -1,0 +1,235 @@
+body {
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1 {
+  padding-bottom: 20px;
+  padding-top: 80px;
+}
+
+h1, h2 {
+  font-family: "Lucida Grande", "Lucida Sans Unicode", "Lucida Sans", Geneva, Verdana, sans-serif;
+  font-weight: 700;
+  font-style: normal;
+  font-size: 45px;
+  margin-left: -3px;
+  margin-bottom: 0px;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  /*color: rgba(0,0,50,1);*/
+  color: rgba(0,0,0,0.8);
+}
+
+h2 {
+  font-size: 35px !important;
+}
+
+#author {
+  text-align: center;
+  font-style: italic;
+  font-size: 15px;
+  margin-top: 100px;
+  margin-bottom: 100px;
+  font-family: "Lucida Grande", "Lucida Sans Unicode", "Lucida Sans", Geneva, Verdana, sans-serif;
+  padding-top: 50px;
+  border-top: 1px solid #bbb;
+}
+
+.content {
+  width: 710px;
+  margin: auto;
+  padding-left: 10px;
+  font-family: Georgia, Cambria, "Times New Roman", Times, serif;
+  letter-spacing: 0.01rem;
+  font-weight: 400;
+  font-style: normal;
+  /*font-size: 22px;*/
+  font-size: 18px;
+  line-height: 1.5;
+  background-color: #fff;
+}
+
+.content > p {
+  margin-left: 30px;
+}
+
+.quote {
+  font-size: 18px;
+  padding-left: 20px;
+  padding-right: 20px;
+  /*margin-left: 33px;*/
+  margin-left: 6px;
+  /*margin-right: 83px;*/
+  margin-right: -14px;
+  border-left: 5px solid rgba(0,0,0,0.1);
+  border-right: 5px solid rgba(0,0,0,0.1);
+}
+
+.img {
+  text-align: center;
+}
+
+.code {
+  width: 700px;
+  padding-left: 50px;
+  font-size: 15px;
+  margin: auto;
+}
+
+.p {
+  margin-bottom: -4px;
+  margin-right: 5px;
+  margin-left: 5px;
+  width: 20px;
+  height: 20px;
+  border: solid 1px #eee;
+}
+
+a {
+  color: rgba(0,0,0,0.8);
+}
+
+#img_canvas {
+  border: 1px #000 solid;
+  float: left;
+  display: inline-block;
+  margin-left: 30px;
+  margin-top: 10px;
+  display: none;
+}
+
+#img {
+  border: 1px #000 solid;
+  float: left;
+  display: inline-block;
+  margin-left: 30px;
+  margin-top: 10px;
+  object-fit: cover;
+  padding: 0px;
+}
+
+.canvas-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.canvas-column button {
+  width: 350px;
+  height: 100%;
+  margin-top: 5px;
+  margin-left: 30px;
+}
+
+.demo {
+  margin-left: auto;
+  margin-right: auto;
+  width: 700px;
+  clear: both;
+  white-space: nowrap;
+  display: flex;
+  flex-direction: row;
+}
+
+.filter-radio {
+  display: flex;
+  flex-wrap: wrap;
+  margin-left: 4px;
+}
+
+.filter-radio label {
+  cursor: pointer;
+  display: inline-block;
+  /*background-color: #ddd;*/
+  background-color: rgb(240, 240, 240);
+  padding: 10px 20px;
+  font-family: sans-serif, Arial;
+  font-size: 16px;
+  border: 2px solid #444;
+  border-radius: 4px;
+  width: 35%;
+  margin-right: 3px;
+  margin-bottom: 3px;
+  text-align: center;
+}
+
+.filter-radio input[type="radio"] {
+  opacity: 0;
+  position: fixed;
+  width: 0;
+}
+
+.filter-radio input[type="radio"]:checked + label {
+  background-color:#bfb;
+  border-color: #4c4;
+}
+
+.choice {
+  display: flex;
+  flex-direction: column;
+}
+
+
+.template-choice [type=radio] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.template-choice [type=radio] + img {
+  cursor: pointer;
+  object-fit: cover;
+  width: 100px;
+  height: 100px;
+  float: left;
+  margin-left: 5px;
+  margin-bottom: 5px;
+}
+
+.template-choice [type=radio]:checked + img {
+  /*box-shadow: 0px 0px 10px 10px rgba(0, 255, 0, 0.3);
+  outline: 100px solid rgba(0, 255, 0, 0.3) !important;*/
+  /*background: rgb(0, 255, 0);*/
+  border: 5px solid rgba(0, 255, 0, 0.5);
+  box-sizing: border-box;
+  padding: 0px;
+}
+
+.template-choice [type=radio]:not(checked) + img {
+  filter: grayscale(0%);
+}
+
+#pixar-gif {
+  margin-left: 100px;
+}
+
+#idea-img {
+  width: 100%;
+}
+
+#upload-btn {
+  cursor: pointer;
+  display: inline-block;
+  /*background-color: #ddd;*/
+  background-color: rgb(240, 240, 240);
+  padding: 10px 20px;
+  font-family: sans-serif, Arial;
+  font-size: 16px;
+  border: 2px solid #444;
+  border-radius: 4px;
+  width: 81%;
+  height: 10%;
+  margin-left: 30px;
+  margin-top: 3px;
+  text-align: center;
+  padding-top: 39px;
+}
+
+#upload-btn:active {
+  background-color: rgb(210, 210, 210);
+}
+
+input:disabled+label {
+  color: #ccc;
+}

@@ -1,0 +1,239 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <link rel="stylesheet" href="pure-min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-wasm/dist/tf-backend-wasm.js"></script>
+  </head>
+  <body>
+    <div class="content">
+      <h1>Face filters on the web from just text descriptions</h1>
+      <p>
+        The last few months of GAN progress has been amazing to watch. The ability to generate images from just text descriptions has been suddenly unlocked thanks to OpenAI's CLIP and with it a flood of exciting possibilities.
+      </p>
+    </div>
+
+    <img id="uploaded-img" src="https://via.placeholder.com/150" hidden />
+    <div class="demo">
+      <div class="choice">
+        <div class="template-choice">
+          <p>
+            <label>
+              <input type="radio" name="cats" value="cat10" checked>
+              <img src="cats/cat10-small.jpg">
+            </label>
+            <label>
+              <input type="radio" name="cats" value="cat2">
+              <img src="cats/cat2-small.jpg">
+            </label>
+            <label>
+              <input type="radio" name="cats" value="cat3">
+              <img src="cats/cat3-small.jpg">
+            </label>
+          </p>
+
+          <p>
+            <label>
+              <input type="radio" name="cats" value="cat4">
+              <img src="cats/cat4-small.jpg">
+            </label>
+            <label>
+              <input type="radio" name="cats" value="cat7">
+              <img src="cats/cat7-small.jpg">
+            </label>
+            <label>
+              <input type="radio" name="cats" value="cat6">
+              <img src="cats/cat6-small.jpg">
+            </label>
+          </p>
+
+          <p>
+            <label>
+              <input type="radio" name="cats" value="cat5">
+              <img src="cats/cat5-small.jpg">
+            </label>
+            <label>
+              <input type="radio" name="cats" value="cat8">
+              <img src="cats/cat8-small.jpg">
+            </label>
+            <label>
+              <input type="radio" name="cats" value="cat9">
+              <img src="cats/cat9-small.jpg">
+            </label>
+          </p>
+        </div>
+
+        <div class="filter-radio">
+          <input type="radio" id="noEffect" name="filter" value="no_effect">
+          <label for="noEffect">no effect</label>
+
+          <input type="radio" id="heartEyes" name="filter" value="heart_eyes" checked>
+          <label for="heartEyes">heart eyes</label>
+
+          <input type="radio" id="smugGrin" name="filter" value="smug_grin">
+          <label for="smugGrin">smug grin</label>
+
+          <input type="radio" id="humanNose" name="filter" value="human_nose">
+          <label for="humanNose">weird nose</label>
+
+          <input type="radio" id="sarcasticStare" name="filter" value="sarcastic_stare">
+          <label for="sarcasticStare">sarcastic eyes</label>
+
+          <input type="radio" id="starEyes" name="filter" value="star_eyes">
+          <label for="starEyes">star eyes</label>
+        </div>
+      </div>
+
+      <div class="canvas-column">
+        <div id="output-div"><img id="img" width="350" height="350" src="precomputed/cat10_heart_eyes.png" /><canvas id="img_canvas" width="350" height="350"></canvas></div>
+        <input id="upload" type="file" accept="image/*" hidden disabled />
+        <label id="upload-btn" for="upload" disabled>upload</label>
+      </div>
+    </div>
+
+    <div class="content">
+      <p>
+        In this post I'll describe a project I did to create face filters for cats - all running locally in javascript - that only uses text descriptions (e.g. "a cat with heart shaped eyes") to guide the transformation (no data gathering needed).
+      </p>
+
+      <h2>Background</h2>
+      <p>
+        Perhaps the most famous technique that CLIP has spawned in the last few months is the very interesting VQGAN+CLIP combination (originally written by <a href="https://twitter.com/advadnoun">Ryan Murdock</a>). Suddenly generating artworks from only a text description seems to have been unlocked (with new improvements coming every week - the <a href="https://colab.research.google.com/drive/1QBsaDAZv8np29FPbvjffbE1eytoJcsgA">CLIP guided diffusion colab</a> written by <a href="https://twitter.com/RiversHaveWings">Katherine Crowson</a> being one of more striking recent advancements). As impressive as these tools are though, the fact that you're nearly stuck on colab to try them out has kind of limited how much fun you can have and how widely they're able to spread outside of GAN fan communities.
+      </p>
+      <p>
+        The thing that would really make them accesible to other parts of the internet (e.g. people focusing on frontend or even normal non-coders who don't have time resources to get into colab twiddling) is if these advances could be distilled and compressed enough to run on standard hardware (or even mobile web) and abstracted enough to be as easy to play with as importing an npm package. Many people probably consider resource expensive computation and state of the art GAN toys to be impossible to untangle, but with a bit of work and by smartly constraining the flexibility of the models, I don't think it is.
+      </p>
+      <a href="https://twitter.com/CitizenPlain/status/1417294943329132544?s=20"><img id="pixar-gif" src="pixar-still.gif" width="500" /></a>
+      <p>
+        There's probably hundreds of low hanging fruits here still but one idea that struck me as easily pluckable is recreating on the web some sort of snapchat-like face filter. (The idea of doing this was heavily inspired by <a href="https://twitter.com/Norod78">Doron Adler</a> and <a href="https://twitter.com/Buntworthy">Justin Pinkney</a>'s interesting "toonify" app that they insightfully wrote about <a href="https://www.justinpinkney.com/toonify-yourself/">here</a> and is testable <a href="http://toonify.photos">here</a>.) There's been many GAN based filters like this in the past 5 or so years, with gender reversal being one of the first and the <a href="https://twitter.com/CitizenPlain/status/1417294943329132544?s=20">"pixar filter"</a> one of the latest and more impressive examples. In the past most of these have required probably thousands upon thousands of real life image pairs. It's not until the last 6 months or so that CLIP has unlocked the ability to manufacture a filter like this from only a text prompt.
+      </p>
+      <p>
+        How? Mostly thanks to the heavy lifting of StyleGAN-nada. While VQGAN+CLIP creates funky and cool art pieces, where CLIP really seems to shine in terms of creating high quality results is when it's acting on a sort of really well trained subspace, e.g. StyleGAN. One of the first things that illustrated this in a very impressive way was <a href="https://github.com/orpatashnik/StyleCLIP">StyleCLIP</a>. With this I-can't-believe-it's-not-magic tool a user can take a face and augment the image in a desired way only using a text description. A frowning face plus "a smiling person" produces someone happy. An image of a cat plus "cute" gives you an adorable kitten.
+      </p>
+      <img src="demo.png" width="700" />
+      <p>
+        This seems ideal for the project in mind above. To achieve the goal of state of the art GAN tech running locally without backend processing, we would just have to produce a lightweight enough model and then stuff it full of thousands of pairs of cat faces. You would grab a cat face image, transform it to make it "a cat with heart shaped eyes" and then feed input and output pairs like that over and over into the lightweight model until it figures out how to transform arbitrary cat faces cheaply in your phone. The wrench in this idea is that StyleCLIP takes a bit too many seconds to massage the input into its desired output shape, and at a minimum of at least 20k or so image pairs that means days of waiting for a full dataset.
+      </p>
+      <img id="idea-img" src="idea.png" />
+      <p>
+        Fortunately this is where the only three month old <a href="https://github.com/rinongal/StyleGAN-nada/">StyleGAN-nada</a> comes in handy. Instead of transforming individual images (like StyleCLIP) what StyleGAN-nada does is take a StyleGAN checkpoint and a text prompt, simmer for only about 10-30 minutes, and then it produces an entirely new StyleGAN model whose walk around the latent space are images that fit the description. Once this has been trained and you have the two networks in hand, generating arbitrary thousands of training pairs takes no time at all. (Sampling from two StyleGAN networks is much faster than performing a StyleCLIP transformation on one image.)
+      </p>
+
+      <h2>Results</h2>
+      <p>
+        So that is what this project does. First it generates 50k image pairs using a cat StyleGAN and a StyleGAN-nada transformation. Then it feeds those to a lightweight pix2pix model which is attached to a preprocessor that finds and aligns cat faces (using <a href="https://github.com/kairess/cat_hipsterizer">this</a> model) and then stitches the output back into the input with poisson blending.
+      </p>
+      <img src="idea2.png" width="800" />
+      <p>
+        To test it out yourself try uploading an image of a cat in the demo at the top of the page, or check out the repo: <a href="https://github.com/DanielRapp/cat-filter">https://github.com/DanielRapp/cat-filter</a> for code to do stuff like this
+      </p>
+
+    </div>
+
+    <div class="code">
+      <pre><code class="javascript">
+  const model = await cat_filter.load('filters/cat_heart_eyes');
+  const img = document.getElementById('my-cat');
+
+  cat_filter.apply(img, model);
+      </code></pre>
+    </div>
+
+      <div id="author">
+        Written by <a href="https://github.com/DanielRapp">Daniel Rapp</a>.
+        Check out the code for this <a href="https://github.com/DanielRapp/cat-filter">on Github</a>.
+      </div>
+    </div>
+    <script src="jquery-3.6.0.slim.min.js"></script>
+    <script type="module">
+      $(function() {
+        $('#pixar-gif').hover(function() {
+          $(this).attr('src','pixar.gif');
+        },function() {
+          $(this).attr('src','pixar-still.gif');
+        });
+
+        const process_filter_radio_click = () => {
+          if (window.upload_exists) {
+            const filter_name = $('input:radio[name=filter]:checked').val();
+            const img = document.getElementById('uploaded-img');
+            add_filter(img, filter_name);
+          }
+          else process_radio_click();
+        };
+
+        const process_cat_radio_click = () => {
+          window.upload_exists = false;
+          process_radio_click();
+        };
+
+        const process_radio_click = () => {
+          const cat    = $('input:radio[name=cats]:checked').val();
+          const filter = $('input:radio[name=filter]:checked').val();
+
+          let img_path;
+          if (filter == 'no_effect') img_path = 'cats/'+cat+'.jpg';
+          else img_path = 'precomputed/'+cat+'_'+filter+'.png';
+          $('#img').attr('src', img_path);
+        };
+
+        $('input:radio[name=cats]').on('click', process_cat_radio_click);
+        $('input:radio[name=filter]').on('click', process_filter_radio_click);
+      });
+
+      const add_filter = async function(img, filter_name) {
+        let result_img = document.getElementById("img");
+        if (filter_name == 'no_effect') result_img.src = img.src;
+        else {
+          let canvas = await cat_filter.apply_filter(img.src, models[filter_name]);
+          result_img.src = canvas.toDataURL();
+        }
+      };
+
+      window.upload_exists = false;
+      document.getElementById('upload').onchange = (ev) => {
+        let files = ev.srcElement.files;
+        if (files && files[0]) {
+          var img = document.getElementById("uploaded-img");
+          img.file = files[0];
+          var reader = new FileReader();
+          reader.onload = (aImg => {
+            return e => {
+              window.upload_exists = true;
+              aImg.src = e.target.result;
+
+              const filter_name = $('input:radio[name=filter]:checked').val();
+              add_filter(aImg, filter_name);
+            };
+          })(img);
+          reader.readAsDataURL(files[0]);
+        }
+      };
+
+      window.models;
+      (async function() {
+        await cat_filter.setup({
+          'bounding_box_model_path': 'cat-filter/cat_box_uint8',
+          'landmarks_model_path': 'cat-filter/cat_landmarks_uint16'
+        });
+        window.models = {
+          heart_eyes: await cat_filter.load('cat-filter/filters/cat_heart_eyes'),
+          smug_grin: await cat_filter.load('cat-filter/filters/cat_smug_grin'),
+          sarcastic_stare: await cat_filter.load('cat-filter/filters/cat_sarcastic_stare'),
+          human_nose: await cat_filter.load('cat-filter/filters/cat_human_nose'),
+          star_eyes: await cat_filter.load('cat-filter/filters/cat_star_eyes'),
+        };
+
+        document.getElementById('upload').disabled = false;
+      })();
+    </script>
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/styles/default.min.css">
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    <script src="cat-filter/cat-filter.js"></script>
+
+  </body>
+</html>
